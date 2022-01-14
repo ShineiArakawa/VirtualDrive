@@ -9,7 +9,7 @@ class YoloAPI:
     # NETWORK_TYPE = "v4-tiny"
     # SIZE = 512
     SIZE = 256
-    CONFIDENCE = 0.1
+    CONFIDENCE = 0.15
     MAX_NUM_HAND = 2
 
     def __init__(self, cameraID: int) -> None:
@@ -24,23 +24,31 @@ class YoloAPI:
 
         if self.NETWORK_TYPE == "normal":
             print("loading yolo...")
-            pathConf = os.path.join(yoloWorkingDirPath, "models/cross-hands.cfg")
-            pathWeight = os.path.join(yoloWorkingDirPath, "models/cross-hands.weights")
+            pathConf = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands.cfg")
+            pathWeight = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands.weights")
             self.__yolo = YOLO(pathConf, pathWeight, ["hand"])
         elif self.NETWORK_TYPE == "prn":
             print("loading yolo-tiny-prn...")
-            pathConf = os.path.join(yoloWorkingDirPath, "models/cross-hands-tiny-prn.cfg")
-            pathWeight = os.path.join(yoloWorkingDirPath, "models/cross-hands-tiny-prn.weights")
+            pathConf = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands-tiny-prn.cfg")
+            pathWeight = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands-tiny-prn.weights")
             self.__yolo = YOLO(pathConf, pathWeight, ["hand"])
         elif self.NETWORK_TYPE == "v4-tiny":
             print("loading yolov4-tiny-prn...")
-            pathConf = os.path.join(yoloWorkingDirPath, "models/cross-hands-yolov4-tiny.cfg")
-            pathWeight = os.path.join(yoloWorkingDirPath, "models/cross-hands-yolov4-tiny.weights")
+            pathConf = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands-yolov4-tiny.cfg")
+            pathWeight = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands-yolov4-tiny.weights")
             self.__yolo = YOLO(pathConf, pathWeight, ["hand"])
         else:
             print("loading yolo-tiny...")
-            pathConf = os.path.join(yoloWorkingDirPath, "models/cross-hands-tiny.cfg")
-            pathWeight = os.path.join(yoloWorkingDirPath, "models/cross-hands-tiny.weights")
+            pathConf = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands-tiny.cfg")
+            pathWeight = os.path.join(
+                yoloWorkingDirPath, "models/cross-hands-tiny.weights")
             self.__yolo = YOLO(pathConf, pathWeight, ["hand"])
 
         self.__yolo.size = int(self.SIZE)
@@ -57,7 +65,8 @@ class YoloAPI:
 
         self.__videoWidth = self.__videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.__videoHeight = self.__videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        print(f"Capture: Height= {self.__videoHeight}, width= {self.__videoWidth}")
+        print(
+            f"Capture: Height= {self.__videoHeight}, width= {self.__videoWidth}")
 
     def getHandPsition(self):
         positions = list()
@@ -80,7 +89,7 @@ class YoloAPI:
         for detection in results[:self.MAX_NUM_HAND]:
             id, name, confidence, x, y, w, h = detection
             cx = (x + (w / 2)) / self.__videoWidth
-            cy = (y + (h / 2))  / self.__videoHeight
+            cy = (y + (h / 2)) / self.__videoHeight
             positions.append((cx, cy))
 
             # draw a bounding box rectangle and label on the image
@@ -98,7 +107,7 @@ class YoloAPI:
         key = cv2.waitKey(10)
         if key == 27:  # exit on ESC
             raise KeyboardInterrupt
-        
+
         return positions
 
     def __del__(self):

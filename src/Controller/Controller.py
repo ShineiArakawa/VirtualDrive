@@ -39,7 +39,7 @@ class MainController:
                 # self.__logger.info(f"steering angle= {self.__steeringAngle}")
 
                 # drive
-                self.__carla.drive(steeringAngle=self.__steeringAngle)
+                # self.__carla.drive(steeringAngle=self.__steeringAngle)
 
         except KeyboardInterrupt:
             self.__plotSteeringLog()

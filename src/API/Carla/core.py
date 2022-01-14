@@ -662,22 +662,25 @@ class KeyboardControl(object):
 
         steer_increment = 5e-4 * milliseconds
         if keys[K_LEFT] or keys[K_a]:
-            self.yoloSteeringCache = np.zeros(shape=World.LENGTH_OF_STEERING_CACHE)
+            self.yoloSteeringCache = np.zeros(
+                shape=World.LENGTH_OF_STEERING_CACHE)
             if self._steer_cache > 0:
                 self._steer_cache = 0
             else:
                 self._steer_cache -= steer_increment
         elif keys[K_RIGHT] or keys[K_d]:
-            self.yoloSteeringCache = np.zeros(shape=World.LENGTH_OF_STEERING_CACHE)
+            self.yoloSteeringCache = np.zeros(
+                shape=World.LENGTH_OF_STEERING_CACHE)
             if self._steer_cache < 0:
                 self._steer_cache = 0
             else:
                 self._steer_cache += steer_increment
         else:
-            self._steer_cache = self.__steeringControl(steeringAngle)
+            self.__steeringControl(steeringAngle, milliseconds=milliseconds)
         self._steer_cache = min(0.7, max(-0.7, self._steer_cache))
         self._control.steer = round(self._steer_cache, 1)
-        print("steering= ", self._control.steer)
+        # TODO
+        # print("steering= ", self._control.steer)
         self._control.hand_brake = keys[K_SPACE]
 
     def _parse_walker_keys(self, keys, milliseconds, world):
@@ -697,25 +700,44 @@ class KeyboardControl(object):
         self._rotation.yaw = round(self._rotation.yaw, 1)
         self._control.direction = self._rotation.get_forward_vector()
 
-    def __steeringControl(self, steeringAngle: float):
+    def __steeringControl(self, steeringAngle: float, milliseconds: float, isBinary: bool = False, steeringBuffer=10.0):
         # normalize
+        if steeringAngle > -steeringBuffer and steeringAngle < steeringBuffer:
+            currentSteering = 0.0
         currentSteering = - steeringAngle / 90
-        # print("currentSteering= ", currentSteering)
 
-        self.yoloSteeringCache = np.roll(self.yoloSteeringCache, 1)
-        self.yoloSteeringCache[0] = currentSteering
+        print("currentSteering= ", currentSteering)
 
-        rolling = 40
-        if self.constantVelocityModeID == World.MODE_ID_60:
-            rolling = 15
-        elif self.constantVelocityModeID == World.MODE_ID_30:
-            rolling = 15
-        elif self.constantVelocityModeID == World.MODE_ID_10:
-            rolling = 10
+        if isBinary:
+            steer_increment = 5e-5 * milliseconds
+            if currentSteering < 0:
+                if self._steer_cache > 0:
+                    self._steer_cache = 0
+                else:
+                    self._steer_cache -= steer_increment
+            elif currentSteering > 0:
+                if self._steer_cache < 0:
+                    self._steer_cache = 0
+                else:
+                    self._steer_cache += steer_increment
+            else:
+                self._steer_cache = 0
+        else:
+            self.yoloSteeringCache = np.roll(self.yoloSteeringCache, 1)
+            self.yoloSteeringCache[0] = currentSteering
 
-        rolledSteering = np.average(self.yoloSteeringCache[:rolling])
-        
-        return rolledSteering
+            rolling = 40
+            if self.constantVelocityModeID == World.MODE_ID_60:
+                rolling = 40
+            elif self.constantVelocityModeID == World.MODE_ID_30:
+                rolling = 15
+            elif self.constantVelocityModeID == World.MODE_ID_10:
+                rolling = 10
+
+            self._steer_cache = np.average(self.yoloSteeringCache[:rolling])
+
+            if self._steer_cache * currentSteering < 0:
+                self._steer_cache = 0.0
 
     @staticmethod
     def _is_quit_shortcut(key):

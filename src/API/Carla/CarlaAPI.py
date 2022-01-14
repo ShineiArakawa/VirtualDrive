@@ -23,7 +23,7 @@ class CarlaAPI:
 
     def __prepare(self):
         argparser = argparse.ArgumentParser(
-        description='CARLA Manual Control Client')
+            description='CARLA Manual Control Client')
         argparser.add_argument(
             '-v', '--verbose',
             action='store_true',
@@ -75,7 +75,8 @@ class CarlaAPI:
             help='Activate synchronous mode execution')
         self.__args = argparser.parse_args()
 
-        self.__args.width, self.__args.height = [int(x) for x in self.__args.res.split('x')]
+        self.__args.width, self.__args.height = [
+            int(x) for x in self.__args.res.split('x')]
 
         pygame.init()
         pygame.font.init()
@@ -99,17 +100,18 @@ class CarlaAPI:
 
         if self.__args.autopilot and not self.__simWorld.get_settings().synchronous_mode:
             print("WARNING: You are currently in asynchronous mode and could "
-                "experience some issues with the traffic simulation")
+                  "experience some issues with the traffic simulation")
 
         self.__display = pygame.display.set_mode(
             (self.__args.width, self.__args.height),
             pygame.HWSURFACE | pygame.DOUBLEBUF)
-        self.__display.fill((0,0,0))
+        self.__display.fill((0, 0, 0))
         pygame.display.flip()
 
         self.__hud = HUD(self.__args.width, self.__args.height)
         self.__world = World(self.__simWorld, self.__hud, self.__args)
-        self.__controller = KeyboardControl(self.__world, self.__args.autopilot)
+        self.__controller = KeyboardControl(
+            self.__world, self.__args.autopilot)
 
         if self.__args.sync:
             self.__simWorld.tick()
@@ -117,24 +119,23 @@ class CarlaAPI:
             self.__simWorld.wait_for_tick()
 
         self.__clock = pygame.time.Clock()
-                
 
     def drive(self, steeringAngle: float):
         if self.__args.sync:
             self.__simWorld.tick()
 
         self.__clock.tick_busy_loop(60)
-        
+
         if self.__controller.parse_events(self.__client, self.__world, self.__clock, self.__args.sync, steeringAngle):
             return
-        
+
         self.__world.tick(self.__clock)
         self.__world.render(self.__display)
         pygame.display.flip()
-    
+
     def __del__(self):
         if self.__originalSettings:
-                self.__simWorld.apply_settings(self.__originalSettings)
+            self.__simWorld.apply_settings(self.__originalSettings)
 
         if (self.__world and self.__world.recording_enabled):
             self.__client.stop_recorder()
